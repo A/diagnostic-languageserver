@@ -1,5 +1,6 @@
 import LSP from '.';
 import { TextDocuments } from 'vscode-languageserver';
+import { flatten } from 'lodash';
 
 const CHANGE_EVENT = { type: 'change' };
 const SAVE_EVENT = { type: 'save' };
@@ -79,7 +80,7 @@ describe('LSP', () => {
       const handler = jest.fn();
       lsp.on('document-update', handler);
       await wait(150);
-      const args = handler.mock.calls.flat();
+      const args = flatten(handler.mock.calls);
       args.forEach(arg => expect(arg).not.toEqual(CHANGE_EVENT));
     });
 
@@ -94,7 +95,7 @@ describe('LSP', () => {
       const handler = jest.fn();
       lsp.on('document-update', handler);
       await wait(150);
-      const args = handler.mock.calls.flat();
+      const args = flatten(handler.mock.calls);
       args.forEach(arg => expect(arg).not.toEqual(SAVE_EVENT));
     });
   });
