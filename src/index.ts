@@ -17,7 +17,7 @@ import {
   next as diagnosticNext,
   unsubscribe as diagnosticUnsubscribe
 } from './handles/handleDiagnostic'
-import logger from './common/logger';
+import logger from './lib/logger';
 import { formatDocument } from './handles/handleFormat';
 
 // parse command line options
@@ -29,20 +29,17 @@ const options = new Command("diagnostic-languageserver")
   .option("--socket <port>", "use socket. example: --socket=5000")
   .allowUnknownOption(true)
   .parse(process.argv);
-let logLevel: MessageType = MessageType.Warning
-if (options.logLevel) {
-  logLevel = parseInt(options.logLevel, 10) as any;
-  if (logLevel && (logLevel < 1 || logLevel > 4)) {
-    logger.error("Invalid `--log-level " + logLevel + "`. Falling back to `log` level.")
-    logLevel = MessageType.Log
-  }
-}
 
 // create connection by command argv
 const connection: IConnection = createConnection();
 
-// init logger
-logger.init(connection, logLevel)
+if (options.logLevel) {
+  logger.configure({ logLevel: Number(options.logLevel) });
+}
+
+logger.onMessage((event) => {
+  connection.console[event.type](event.message);
+});
 
 // sync text document manager
 const documents = new TextDocuments(TextDocument)

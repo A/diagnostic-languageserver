@@ -13,7 +13,7 @@ import { waitMap } from '../common/observable';
 import { ILinterConfig, SecurityKey, ILinterResult } from '../common/types';
 import { executeFile, findWorkDirectory, findCommand, checkAnyFileExists } from '../common/util';
 import HunkStream from '../common/hunkStream';
-import logger from '../common/logger';
+import logger from '../lib/logger';
 import lodashGet from 'lodash/get';
 
 const securityMap = {

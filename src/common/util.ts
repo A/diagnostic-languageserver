@@ -10,7 +10,7 @@ import findUp from 'find-up';
 import { SpawnOptions, spawn } from 'child_process';
 import tempy from 'tempy';
 import del from 'del';
-import logger from './logger';
+import logger from '../lib/logger';
 
 export async function executeFile(
   input: Readable,

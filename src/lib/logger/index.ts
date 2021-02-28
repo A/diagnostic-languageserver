@@ -11,7 +11,7 @@ interface MessageEvent {
 
 type Callback = (event: MessageEvent) => void;
 
-enum LogLevel {
+export enum LogLevel {
   none,
   error,
   warn,
@@ -20,16 +20,20 @@ enum LogLevel {
 }
 
 const DEFAULT_CONFIG = {
-  logLevel: 0,
+  logLevel: LogLevel.warn,
 }
 
 class Logger {
   private eventEmitter: EventEmitter;
   private config: Config;
 
-  constructor(config?: Partial<Config>) {
-    this.config = Object.assign({}, DEFAULT_CONFIG, config);
+  constructor() {
+    this.config = Object.assign({}, DEFAULT_CONFIG);
     this.eventEmitter = new EventEmitter();
+  }
+
+  public configure = (config: Partial<Config>) => {
+    this.config = Object.assign({}, this.config, config);
   }
 
   private emit = (type: keyof typeof LogLevel, message: string) => {
@@ -47,4 +51,4 @@ class Logger {
   public error = (message: string) => this.emit('error', message);
 }
 
-export default Logger;
+export default new Logger();
