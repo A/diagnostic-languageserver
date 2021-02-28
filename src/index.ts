@@ -24,10 +24,6 @@ import { formatDocument } from './handles/handleFormat';
 const options = new Command("diagnostic-languageserver")
   .version(require("../package.json").version)
   .option("--log-level <logLevel>", "A number indicating the log level (4 = log, 3 = info, 2 = warn, 1 = error). Defaults to `2`.")
-  .option("--stdio", "use stdio")
-  .option("--node-ipc", "use node-ipc")
-  .option("--socket <port>", "use socket. example: --socket=5000")
-  .allowUnknownOption(true)
   .parse(process.argv);
 
 // create connection by command argv
@@ -48,7 +44,7 @@ const documents = new TextDocuments(TextDocument)
 let config: IConfig
 
 // lsp initialize
-connection.onInitialize((param: InitializeParams) => {
+connection.onInitialize((param) => {
   const { initializationOptions = {} } = param
 
   config = initializationOptions
