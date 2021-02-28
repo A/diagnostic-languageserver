@@ -1,0 +1,17 @@
+name: Test
+
+on: push
+jobs:
+  lint:
+    runs-on: ubuntu-18.04
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+      - name: install dependencies
+        run: yarn install
+      - name: run unit tests
+        run: yarn run test
+      - name: check typescript build errors
+        run: node_modules/.bin/tsc
