@@ -1,5 +1,14 @@
+const config = {
+  initializationOptions: {
+    filetypes: {
+      'typescript': 'eslint',
+      'javascript': 'eslint',
+    },
+  }
+}
+
 const onInitialize = (callback: any) => {
-  setTimeout(() => callback({}), 20)
+  setTimeout(() => callback(config), 20)
 };
 
 export const createConnection = () => {

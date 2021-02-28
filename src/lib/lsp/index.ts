@@ -10,13 +10,10 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import EventEmitter from 'eventemitter3';
 import logger from '../logger';
+import { IConfig as LSPConfig} from '../../common/types';
 
 interface Config {
   emitOnEvents: Array<'save' | 'change'>
-}
-
-interface LSPConfig {
-
 }
 
 enum EventTypes {
@@ -36,9 +33,9 @@ const DEFAULT_CONFIG = {
 }
 
 class LSP {
+  public lspConfig: LSPConfig
   private connection: Connection;
   private documents: TextDocuments<TextDocument>;
-  private lspConfig: LSPConfig
   private config: Config;
   private emitter: EventEmitter;
 
@@ -67,8 +64,12 @@ class LSP {
   private listenDocumentEvents = () => {
     this.documents = new TextDocuments(TextDocument)
 
+    // TODO: get rid of duplication
     this.documents.onDidChangeContent((event) => {
       if (!this.config.emitOnEvents.includes('change')) {
+        return;
+      }
+      if (!this.lspConfig?.filetypes?.[event.document.languageId]) {
         return;
       }
       this.emitter.emit(EventTypes.documentUpdate, event);
@@ -76,6 +77,9 @@ class LSP {
 
     this.documents.onDidSave((event) => {
       if (!this.config.emitOnEvents.includes('save')) {
+        return;
+      }
+      if (!this.lspConfig?.filetypes?.[event.document.languageId]) {
         return;
       }
       this.emitter.emit(EventTypes.documentUpdate, event);

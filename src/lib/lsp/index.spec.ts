@@ -2,8 +2,19 @@ import LSP from '.';
 import { TextDocuments } from 'vscode-languageserver';
 import { flatten } from 'lodash';
 
-const CHANGE_EVENT = { type: 'change' };
-const SAVE_EVENT = { type: 'save' };
+const CHANGE_EVENT = {
+  type: 'change',
+  document: {
+    languageId: 'typescript',
+  }
+};
+
+const SAVE_EVENT = {
+  type: 'save',
+  document: {
+    languageId: 'typescript',
+  }
+};
 
 describe('LSP', () => {
   beforeEach(() => {
@@ -13,7 +24,14 @@ describe('LSP', () => {
   it('should initialize connection', (done) => {
     const lsp = new LSP();
     lsp.on('init', (params) => {
-      expect(params).toEqual({});
+      expect(params).toEqual({
+        initializationOptions: {
+          filetypes: {
+            typescript: 'eslint',
+            javascript: 'eslint'
+          }
+        }
+      });
       done();
     });
   });
@@ -97,6 +115,21 @@ describe('LSP', () => {
       await wait(150);
       const args = flatten(handler.mock.calls);
       args.forEach(arg => expect(arg).not.toEqual(SAVE_EVENT));
+    });
+
+    it('should not emit updates if language is not supported', async () => {
+      // create LSP layer
+      const lsp = new LSP();
+      await wait(30); // wait till initialized (20ms)
+
+      // @ts-ignore remove all supported filetypes
+      lsp.lspConfig.filetypes = [];
+
+      // check if handler is called
+      const handler = jest.fn();
+      lsp.on('document-update', handler);
+      await wait(150);
+      expect(handler).not.toBeCalled();
     });
   });
 });
