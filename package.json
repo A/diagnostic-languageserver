@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc -p ./",
     "watch": "tsc -w -p ./",
-    "test": "jest"
+    "test": "jest",
+    "prepublish": "tsc"
   },
   "bin": {
     "diagnostic-languageserver": "./bin/index.js"
