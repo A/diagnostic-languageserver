@@ -16,10 +16,7 @@ interface Config {
   emitOnEvents: Array<'save' | 'change'>
 }
 
-enum EventTypes {
-  init = 'init',
-  documentUpdate = 'document-update',
-}
+type LspEvent = 'connect' | 'connected' | 'document-update';
 
 type Callback = (event: any) => void;
 
@@ -42,7 +39,7 @@ class LSP {
   constructor(config?: Partial<Config>) {
     this.config = Object.assign({}, DEFAULT_CONFIG, config);
     this.emitter = new EventEmitter();
-    this.emitter.on(EventTypes.init, (params) => {
+    this.emitter.on('connected', (_, params) => {
       this.lspConfig = Object.assign({}, params.initializationOptions)
       logger.log('Initialization Options ${JSON.stringify(this.config)}')
     });
@@ -54,10 +51,13 @@ class LSP {
 
   private initConnection = () => {
     this.connection = createConnection();
+    this.emitter.emit('connect', this.connection)
     this.connection.onInitialize((params) => {
-      this.emitter.emit(EventTypes.init, params);
+      this.emitter.emit('connected', this.connection, params);
       return { capabilities };
     });
+
+    this.connection.listen();
     return this;
   }
 
@@ -72,7 +72,7 @@ class LSP {
       if (!this.lspConfig?.filetypes?.[event.document.languageId]) {
         return;
       }
-      this.emitter.emit(EventTypes.documentUpdate, event);
+      this.emitter.emit('document-update', event);
     });
 
     this.documents.onDidSave((event) => {
@@ -82,19 +82,21 @@ class LSP {
       if (!this.lspConfig?.filetypes?.[event.document.languageId]) {
         return;
       }
-      this.emitter.emit(EventTypes.documentUpdate, event);
+      this.emitter.emit('document-update', event);
     });
 
     this.documents.listen(this.connection);
     return this;
   }
 
-  public on = (event: string, callback: Callback) => {
+  public on = (event: LspEvent, callback: Callback) => {
     this.emitter.on(event, callback);
+    return this;
   }
 
-  public off = (event: string, callback: Callback) => {
+  public off = (event: LspEvent, callback: Callback) => {
     this.emitter.off(event, callback);
+    return this;
   }
 }
 
