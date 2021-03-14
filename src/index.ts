@@ -2,11 +2,9 @@ import { Command } from 'commander';
 import {
   createConnection,
   TextDocuments,
-  InitializeParams,
   IConnection,
   DocumentFormattingParams,
   CancellationToken,
-  MessageType,
   TextDocumentChangeEvent,
   TextDocumentSyncKind,
 } from 'vscode-languageserver';
@@ -17,32 +15,25 @@ import {
   next as diagnosticNext,
   unsubscribe as diagnosticUnsubscribe
 } from './handles/handleDiagnostic'
-import logger from './common/logger';
+import logger from './lib/logger';
 import { formatDocument } from './handles/handleFormat';
 
 // parse command line options
 const options = new Command("diagnostic-languageserver")
   .version(require("../package.json").version)
   .option("--log-level <logLevel>", "A number indicating the log level (4 = log, 3 = info, 2 = warn, 1 = error). Defaults to `2`.")
-  .option("--stdio", "use stdio")
-  .option("--node-ipc", "use node-ipc")
-  .option("--socket <port>", "use socket. example: --socket=5000")
-  .allowUnknownOption(true)
   .parse(process.argv);
-let logLevel: MessageType = MessageType.Warning
-if (options.logLevel) {
-  logLevel = parseInt(options.logLevel, 10) as any;
-  if (logLevel && (logLevel < 1 || logLevel > 4)) {
-    logger.error("Invalid `--log-level " + logLevel + "`. Falling back to `log` level.")
-    logLevel = MessageType.Log
-  }
-}
 
 // create connection by command argv
 const connection: IConnection = createConnection();
 
-// init logger
-logger.init(connection, logLevel)
+if (options.logLevel) {
+  logger.configure({ logLevel: Number(options.logLevel) });
+}
+
+logger.onMessage((event) => {
+  connection.console[event.type](event.message);
+});
 
 // sync text document manager
 const documents = new TextDocuments(TextDocument)
@@ -51,7 +42,7 @@ const documents = new TextDocuments(TextDocument)
 let config: IConfig
 
 // lsp initialize
-connection.onInitialize((param: InitializeParams) => {
+connection.onInitialize((param) => {
   const { initializationOptions = {} } = param
 
   config = initializationOptions
