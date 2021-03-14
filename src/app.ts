@@ -1,9 +1,11 @@
-import logger, { LogLevel } from './lib/logger';
-import LSP from './lib/lsp';
-
-// TODO: event emiter generics ??
 import { TextDocumentChangeEvent } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument'
+import logger, { LogLevel } from './lib/logger';
+import LSP from './lib/lsp';
+import { appendFileSync } from 'fs';
+import processor from './lib/processor';
+
+// TODO: event emiter generics ??
 
 interface AppConfig {
   logLevel: number;
@@ -18,22 +20,35 @@ class App {
   private lsp: LSP;
   
   constructor(config?: Partial<AppConfig>) {
-    console.log(123123)
     this.config = Object.assign({}, DEFAULT_CONFIG, config);
-    logger.configure({ logLevel: this.config.logLevel });
+    logger.configure({ logLevel: LogLevel.log });
     this.lsp = new LSP();
-    this.lsp.on('document-update', (event: TextDocumentChangeEvent<TextDocument>) => {
-      const { document } = event;
-      logger.error('WTFWTF');
-      logger.error(JSON.stringify(Object.keys(event)));
-      logger.error(JSON.stringify(document));
-
-    });
-    this.lsp.on('connect', (connection) => {
-      logger.onMessage((event) => {
-        connection.console[event.type](event.message);
-      });
-    })
+    this.lsp
+      .on('connected', (connection, params) => {
+        logger.onMessage((event) => {
+          appendFileSync('/home/a8ka/diagnostics.log', event.message + '\n\r');
+          connection.console[event.type](event.message);
+        });
+        logger.log('setup processor');
+        processor.setup({
+          linters: [{
+            filetype: 'javascript',
+            command: 'eslint',
+            rootPatterns: [
+              '.eslintrc',
+              '.eslintrc.js',
+              '.eslintrs.json',
+              'package.json'
+            ],
+          }]
+        });
+      })
+      .on('document-update', async (event: TextDocumentChangeEvent<TextDocument>) => {
+        const { document } = event;
+        logger.log('DOC:' + JSON.stringify(document));
+        const result = await processor.lint(document);
+        logger.log(JSON.stringify(result));
+      })
   }
 }
 

@@ -10,7 +10,7 @@
     "build": "tsc -p ./",
     "watch": "tsc -w -p ./",
     "test": "jest",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "bin": {
     "diagnostic-languageserver": "./bin/index.js"
