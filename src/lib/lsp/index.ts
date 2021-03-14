@@ -19,6 +19,7 @@ interface Config {
 enum EventTypes {
   init = 'init',
   documentUpdate = 'document-update',
+  connect = 'connect',
 }
 
 type Callback = (event: any) => void;
@@ -54,6 +55,7 @@ class LSP {
 
   private initConnection = () => {
     this.connection = createConnection();
+    this.emitter.emit(EventTypes.connect, this.connection)
     this.connection.onInitialize((params) => {
       this.emitter.emit(EventTypes.init, params);
       return { capabilities };

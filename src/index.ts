@@ -2,11 +2,9 @@ import { Command } from 'commander';
 import {
   createConnection,
   TextDocuments,
-  InitializeParams,
   IConnection,
   DocumentFormattingParams,
   CancellationToken,
-  MessageType,
   TextDocumentChangeEvent,
   TextDocumentSyncKind,
 } from 'vscode-languageserver';
